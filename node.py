@@ -83,7 +83,27 @@ class p2pNode:
         while True:
             obj, conn = sock.accept()
             thread.start_new_thread(self.handle, (obj, conn[0]))
-    
+
+    def fileserver(self):
+        sock = socket.socket()
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((p2p.config.host, 1218))
+        sock.listen(5)
+        print "file server started"
+        while True:
+            sc, address = sock.accept()
+            print address
+            f = open("data//model//rev.bin",'wb') #open in binary
+            while (True):
+                l = sc.recv(1024)
+                while (l):
+                    f.write(l)
+                    l = sc.recv(1024)
+            f.close()
+            sc.close()
+            print "file received"
+        sock.close()
+
     def handle(self, obj, ip):
         data = obj.recv(10240)
         if data:
@@ -96,7 +116,7 @@ class p2pNode:
                 if "cmd" in data:
                     if data['cmd'] in self.cmds:
                         data['ip'] = ip
-                        print data
+                        #print data
                         self.cmds[data['cmd']](obj, data)
                         obj.close()
     
@@ -118,6 +138,7 @@ def run_p2p():
     if p2p.config.relay:
         thread.start_new_thread(pn.normal, ())
         thread.start_new_thread(pn.relay, ())
+        thread.start_new_thread(pn.fileserver, ())
         print "DFR started as a relay node."
     else:
         thread.start_new_thread(pn.normal, ())
@@ -291,8 +312,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        f = open('data//labels.bin', 'rb')
-        p2p.send_file.send(str(f))
+        p2p.send_file.send()
         self.render("face.html")
 
 def main():
