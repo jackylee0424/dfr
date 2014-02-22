@@ -22,6 +22,8 @@ import shutil
 
 genesis_ts = 1392697800000
 
+total_images=0
+
 tornado.options.define("port", default=8080, help="run on the given port", type=int)
 
 def sha256_for_file(path, block_size=256*128, hr=False):
@@ -72,6 +74,7 @@ def train():
     with open('data//processed//%s.data'%filename_temp, 'wb') as output:
         pickle.dump({'X': X, 'y':y}, output, pickle.HIGHEST_PROTOCOL) ## X: image, y: label(integer)
 
+    total_images = X
     if len(X)<10:
         print "too few images stored. train more!"
         return
@@ -178,6 +181,11 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
             os.makedirs("data")
         with open('data//labels.bin', 'wb') as output:
             pickle.dump(self.labeldict, output, pickle.HIGHEST_PROTOCOL)
+
+        # check if re-train is needed
+        X,y = read_data("data/raw/")
+        if (len(X)-total_images)>20:
+            train()
         print "ws closed"
 
 
