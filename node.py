@@ -19,8 +19,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print "ws opened"
         self.dir_name = "%.0f"%(time.time()*1000.0)
-        self.userresponse = 0
-        self.emotion = ""
+        self.mode = 0
 
     def allow_draft76(self):
         # for iOS 5.0 Safari
@@ -28,14 +27,22 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
     
     def on_message(self, message):
         parsed = tornado.escape.json_decode(message)
+        self.mode = int(parsed["mode"])
+
         d = urllib2.unquote(parsed["base64Data"])
-        fname = "%.0f"%(time.time()*1000.0)
-        if not os.path.exists("data//raw//"+self.dir_name):
-            os.makedirs("data//raw//"+self.dir_name)
-        
-        with open("data//raw//%s//%s.png"%(self.dir_name,fname),"wb") as f:
-            f.write(base64.b64decode(d.split(',')[1]))
-            print "saved to %s.png"%fname
+        img = base64.b64decode(d.split(',')[1])
+                               
+        if (self.mode>0):
+            print "Detect mode"
+        else:
+            print "Training mode"
+            print "current label: %s"%parsed["label"]
+            fname = "%.0f"%(time.time()*1000.0)
+            if not os.path.exists("data//raw//"+self.dir_name):
+                os.makedirs("data//raw//"+self.dir_name)
+            with open("data//raw//%s//%s.png"%(self.dir_name,fname),"wb") as f:
+                f.write(img)
+                print "saved to %s.png"%fname
     
     def on_close(self):
         print "ws closed"
@@ -43,7 +50,6 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        p2p.send_command.send({"cmd":"p2p"})
         self.render("face.html")
 
 def main():

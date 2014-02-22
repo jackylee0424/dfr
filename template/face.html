@@ -13,7 +13,10 @@
                 <canvas id="canvas" width="640" height="480"></canvas>
                 <div id="no_rtc" class="alert alert-error" style="display:none;"></div>
                 <div id="log" class="alert alert-info"></div>
+                <div id="button" data-role="button">Detecting Mode</div>
+                <input type="text" id="label_name" />
             </div>
+            
             
         <script type="text/javascript" src="static/js/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="static/js/jsfeat-min.js"></script>
@@ -71,7 +74,8 @@
             var max_work_size = 160;
             var counter = 0;
                        
-            var dfrmode = 0; //0: training, 1: detecting
+            var dfrmode = 1; //-1: training, 1: detecting
+            var present_label = "";
 
             var demo_opt = function(){
                 this.min_scale = 2;
@@ -80,6 +84,8 @@
                 this.edges_density = 0.13;
                 this.equalize_histogram = true;
             }
+                       
+            $('#label_name').hide();
                        
             
 
@@ -101,6 +107,7 @@
                 work_canvas.width = w;
                 work_canvas.height = h;
                 work_ctx = work_canvas.getContext('2d');
+        
                 ii_sum = new Int32Array((w+1)*(h+1));
                 ii_sqsum = new Int32Array((w+1)*(h+1));
                 ii_tilted = new Int32Array((w+1)*(h+1));
@@ -117,6 +124,21 @@
 
                 stat.add("haar detector");
             }
+                       
+           $("#button").click( function()
+            {
+                dfrmode = -1 * dfrmode;
+                if (dfrmode<0){
+                    $("#button").text("Training Mode");
+                    $("#label_name").show();
+                    //document.getElementById('label_name').value
+                    present_label = $("#label_name").val();
+                }else{
+                    $("#button").text("Detection Mode");
+                    $("#label_name").hide();
+                    //present_label = $('#label_name').val();
+                }
+            });
 
             function tick() {
                 compatibility.requestAnimationFrame(tick);
@@ -180,10 +202,9 @@
                     faceROI.getContext('2d').drawImage(video, r.x*sc, r.y*sc, r.width*sc, r.height*sc,0,0,r.width*sc, r.width*sc);
                     var data = faceROI.toDataURL('image/png');
                     
-                    if ((data.length>10000)&&(counter%90==0)){
+                    if ((data.length>10000)&&(counter%180==0)){
                        //send data to server
-                       if (dfrmode<1)
-                            ws.send('{"base64Data":"'+escape(data)+'"}');
+                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
                     }
                     counter++;
                     document.body.removeChild(faceROI)
