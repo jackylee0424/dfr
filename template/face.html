@@ -130,9 +130,8 @@
                 dfrmode = -1 * dfrmode;
                 if (dfrmode<0){
                     $("#button").text("Training Mode");
+                    //present_label = document.getElementById('label_name').value;
                     $("#label_name").show();
-                    //document.getElementById('label_name').value
-                    present_label = $("#label_name").val();
                 }else{
                     $("#button").text("Detection Mode");
                     $("#label_name").hide();
@@ -202,9 +201,10 @@
                     faceROI.getContext('2d').drawImage(video, r.x*sc, r.y*sc, r.width*sc, r.height*sc,0,0,r.width*sc, r.width*sc);
                     var data = faceROI.toDataURL('image/png');
                     
-                    if ((data.length>10000)&&(counter%180==0)){
+                    if ((data.length>10000)&&(counter%90==0)){
                        //send data to server
-                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
+                       present_label = $("#label_name").val();
+                       ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
                     }
                     counter++;
                     document.body.removeChild(faceROI)
