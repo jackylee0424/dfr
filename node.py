@@ -35,6 +35,7 @@ import p2p.get_nodes
 import p2p.register
 import rsa
 import p2p.send_command
+import p2p.send_file
 
 class p2pNode:
     def __init__(self):
@@ -216,7 +217,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
         try:
             with open('data//labels.bin', 'rb') as input:
                 self.labeldict = pickle.load(input)
-                print self.labeldict
+                #print self.labeldict
         except:
             print "no label file found"
 
@@ -290,7 +291,8 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        p2p.send_command.send({"cmd":"p2p"})
+        f = open('data//labels.bin', 'rb')
+        p2p.send_file.send(str(f))
         self.render("face.html")
 
 def main():
