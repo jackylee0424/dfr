@@ -160,6 +160,7 @@ def imgpreprocess(filepath):
     return im
 
 def train():
+    global total_images
     ## read images
     t = time.time()
     X,y = read_data("data/raw/")
@@ -171,7 +172,8 @@ def train():
     with open('data//processed//%s.data'%filename_temp, 'wb') as output:
         pickle.dump({'X': X, 'y':y}, output, pickle.HIGHEST_PROTOCOL) ## X: image, y: label(integer)
 
-    total_images = X
+    total_images = len(X)
+    print "total images: %d"%total_images
     if len(X)<10:
         print "too few images stored. train more!"
         return
@@ -271,6 +273,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
             print "Labels- %s"%(self.labeldict[self.dir_name])
 
     def on_close(self):
+        global total_images
         if (self.mode>0):
             shutil.rmtree("data//raw//%s"%(self.dir_name))
         # save label pairs to disk
