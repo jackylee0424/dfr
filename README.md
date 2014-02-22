@@ -5,9 +5,9 @@ launchhack 2014
 
 1. Launch face recog node
 
-$ sudo port install opencv +python27
+      $ sudo port install opencv +python27
 
-$ python node.py
+      $ python node.py
 
 2. Launch chrome browser and go to http://localhost:8080
 3. Webpage will ask for camera permission
