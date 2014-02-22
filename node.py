@@ -21,8 +21,106 @@ import hashlib
 import shutil
 
 genesis_ts = 1392697800000
-
 total_images=0
+
+## p2p node
+import string
+import random
+import thread
+import socket
+import p2p.config
+import p2p.get_db
+import p2p.get_version
+import p2p.get_nodes
+import p2p.register
+import rsa
+import p2p.send_command
+
+class p2pNode:
+    def __init__(self):
+        self.cmds = {
+            "get_db":p2p.get_db.get_db,
+            "get_nodes":p2p.get_nodes.get_nodes,
+            "get_version":p2p.get_version.get_version,
+            "register":p2p.register.register,
+            "get_nodes_count":p2p.get_nodes.count,
+            "p2p":self.runp2p
+    }
+    def runp2p(self,obj,data):
+        obj.send(json.dumps({"p2p":"hello world!"}))
+    
+    def firstrun(self):
+        print "Generating address and public/private keys"
+        pub, priv = rsa.newkeys(1024)
+        address = "D"+''.join([random.choice(string.uppercase+string.lowercase+string.digits) for x in range(50)])
+        print "My DFR wallet address: "+address
+        print "Getting nodes from network"
+        p2p.get_nodes.send(True)
+        check = p2p.config.nodes.find("nodes", "all")
+        if not check:
+            print "Seed node (aka no other nodes online)"
+            p2p.config.nodes.insert("nodes", {"public":str(pub), "address":address, "ip":p2p.config.host, "relay":p2p.config.relay, "port":p2p.config.port})
+            p2p.config.nodes.save()
+            p2p.config.db.save()
+        p2p.config.wallet.insert("data", {"public":str(pub), "address":address, "private":str(priv)})
+        p2p.config.wallet.save()
+        print "Registering..."
+        p2p.register.send()
+        print "Getting db..."
+        p2p.get_db.send()
+        print "Done!"
+    
+    def relay(self):
+        # relay mode
+        p2p.get_nodes.send()
+        p2p.register.send()
+        p2p.get_db.send()
+        sock = socket.socket()
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((p2p.config.host, p2p.config.port))
+        sock.listen(5)
+        while True:
+            obj, conn = sock.accept()
+            thread.start_new_thread(self.handle, (obj, conn[0]))
+    
+    def handle(self, obj, ip):
+        data = obj.recv(10240)
+        if data:
+            try:
+                data = json.loads(data)
+            except:
+                obj.close()
+                return
+            else:
+                if "cmd" in data:
+                    if data['cmd'] in self.cmds:
+                        data['ip'] = ip
+                        print data
+                        self.cmds[data['cmd']](obj, data)
+                        obj.close()
+    
+    def normal(self):
+        # normal mode
+        if not p2p.config.relay:
+            p2p.get_db.send()
+            p2p.register.send()
+        while True:
+            #coin_count.send()
+            p2p.get_nodes.count_send()
+            time.sleep(60)
+
+def run_p2p():
+    pn = p2pNode()
+    check = p2p.config.nodes.find("nodes", "all")
+    if not check:
+        pn.firstrun()
+    if p2p.config.relay:
+        thread.start_new_thread(pn.normal, ())
+        thread.start_new_thread(pn.relay, ())
+        print "DFR started as a relay node."
+    else:
+        thread.start_new_thread(pn.normal, ())
+        print "DFR started as a normal node."
 
 tornado.options.define("port", default=8080, help="run on the given port", type=int)
 
@@ -53,7 +151,6 @@ def read_data(path, sz=None):
                     print "Unexpected error:", sys.exc_info()[0]
                     raise
     return X,y
-
 
 def imgpreprocess(filepath):
     im = cv2.imread(filepath)
@@ -188,12 +285,13 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
             train()
         print "ws closed"
 
-
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
+        p2p.send_command.send({"cmd":"p2p"})
         self.render("face.html")
 
 def main():
+    run_p2p()
     train()
     settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "template"),
@@ -210,7 +308,6 @@ def main():
     http_server.listen(tornado.options.options.port)
     print "open your chrome at http://localhost:8080"
     tornado.ioloop.IOLoop.instance().start()
-
 
 if __name__ == "__main__":
     main()
