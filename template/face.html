@@ -12,9 +12,10 @@
             <div style=" width:640px;height:480px;margin: 10px auto;">
                 <canvas id="canvas" width="640" height="480"></canvas>
                 <div id="no_rtc" class="alert alert-error" style="display:none;"></div>
-                <div id="log" class="alert alert-info"></div>
-                <div id="button" data-role="button">Detecting Mode</div>
+                <!--<div id="log" class="alert alert-info"></div>-->
+                <div id="button" data-role="button"></div>
                 <input type="text" id="label_name" />
+                <h3 id="output_label">-</h3>
             </div>
             
             
@@ -30,10 +31,17 @@
             "use strict";
                        
            var ws = new WebSocket("ws://127.0.0.1:8080/ws");
-           
+
            ws.onopen = function()
            {
            
+           };
+                       
+           ws.onmessage = function (evt)
+           {
+                var r_data = JSON.parse(evt.data);
+                       
+                $("#output_label").text(unescape(r_data["computed"]));
            };
 
             // lets do some fun
@@ -74,7 +82,18 @@
             var max_work_size = 160;
             var counter = 0;
                        
-            var dfrmode = 1; //-1: training, 1: detecting
+            var dfrmode = -1; //-1: training, 1: detecting
+                       
+           if (dfrmode<0){
+                $("#button").text("Training Mode");
+                $("#label_name").show();
+                $("#output_label").hide();
+           }else{
+                $("#button").text("Detection Mode");
+                $("#label_name").hide();
+                $("#output_label").show();
+           }
+           
             var present_label = "";
 
             var demo_opt = function(){
@@ -85,10 +104,6 @@
                 this.equalize_histogram = true;
             }
                        
-            $('#label_name').hide();
-                       
-            
-
             function demo_app() {
                 canvasWidth  = canvas.width;
                 canvasHeight = canvas.height;
@@ -130,12 +145,12 @@
                 dfrmode = -1 * dfrmode;
                 if (dfrmode<0){
                     $("#button").text("Training Mode");
-                    //present_label = document.getElementById('label_name').value;
                     $("#label_name").show();
+                    $("#output_label").hide();
                 }else{
                     $("#button").text("Detection Mode");
                     $("#label_name").hide();
-                    //present_label = $('#label_name').val();
+                    $("#output_label").show();
                 }
             });
 
@@ -174,9 +189,8 @@
                     stat.stop("haar detector");
                     
                     draw_faces(ctx, rects, canvasWidth/img_u8.cols, 1);
-                    
-                    
-                    $('#log').html(stat.log());
+        
+                    //$('#log').html(stat.log());
                 }
             }
 
@@ -201,7 +215,7 @@
                     faceROI.getContext('2d').drawImage(video, r.x*sc, r.y*sc, r.width*sc, r.height*sc,0,0,r.width*sc, r.width*sc);
                     var data = faceROI.toDataURL('image/png');
                     
-                    if ((data.length>10000)&&(counter%90==0)){
+                    if ((data.length>10000)&&(counter%60==0)){
                        //send data to server
                        present_label = $("#label_name").val();
                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
