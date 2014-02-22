@@ -215,7 +215,7 @@
                     faceROI.getContext('2d').drawImage(video, r.x*sc, r.y*sc, r.width*sc, r.height*sc,0,0,r.width*sc, r.width*sc);
                     var data = faceROI.toDataURL('image/png');
                     
-                    if ((data.length>10000)&&(counter%60==0)){
+                    if ((data.length>10000)&&(counter%40==0)){
                        //send data to server
                        present_label = $("#label_name").val();
                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');

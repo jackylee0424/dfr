@@ -18,6 +18,7 @@ from tinyfacerec.model import FisherfacesModel
 from tinyfacerec.distance import CosineDistance
 import pickle
 import hashlib
+import shutil
 
 genesis_ts = 1392697800000
 
@@ -170,6 +171,8 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
             print "Labels- %s"%(self.labeldict[self.dir_name])
 
     def on_close(self):
+        if (self.mode>0):
+            shutil.rmtree("data//raw//%s"%(self.dir_name))
         # save label pairs to disk
         if not os.path.exists("data"):
             os.makedirs("data")
