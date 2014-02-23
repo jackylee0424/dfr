@@ -328,6 +328,26 @@ class CapturePageHandler(tornado.web.RequestHandler):
         except:
             self.redirect('/new')
 
+class DoneLoginPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        try:
+            label = self.get_argument('label',None, True)
+            if label=='':
+                self.redirect('/')
+        except:
+            self.redirect('/')
+        self.write('''<html><head>
+            <meta charset="utf-8">
+            <title>p2pID</title>
+            <link rel="stylesheet" href="static/css/bootstrap.css">
+            <link rel="stylesheet" href="static/css/jsfeat.css">
+            </head><body>''')
+        self.write("<h2>Login Successfully, %s</h2>"%label)
+        self.write("<p>move on to integrate p2pID to your system</p>")
+        self.write("<p><a href='/how'>how to</a></p><br><br>")
+        self.write("<p><a href='/'>home</a></p>")
+        self.write("</body></html>")
+
 
 class LoginPageHandler(tornado.web.RequestHandler):
     def get(self):
@@ -341,12 +361,26 @@ class IndexPageHandler(tornado.web.RequestHandler):
                    <link rel="stylesheet" href="static/css/bootstrap.css">
                    <link rel="stylesheet" href="static/css/jsfeat.css">
                    </head><body>''')
-        self.write("<h2>p2pID</h2>")
+        self.write("<br><h2>p2pID</h2><br>")
         self.write("<p>A peer-to-peer bio-identification service for verifying a user's presence</p><br><br>")
         self.write("<p><a href='/login'>login</a></p>")
         self.write("<p><a href='/new'>new user</a></p>")
         self.write("<p><a href='/how'>soure</a></p>")
         self.write("<p><a href='http://p2pid.co'>home</a></p>")
+        self.write("</body></html>")
+
+class DonePageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('''<html><head>
+            <meta charset="utf-8">
+            <title>p2pID</title>
+            <link rel="stylesheet" href="static/css/bootstrap.css">
+            <link rel="stylesheet" href="static/css/jsfeat.css">
+            </head><body>''')
+        self.write("<h2>ok</h2>")
+        self.write("<p>new user database established. try login now.</p>")
+        self.write("<p><a href='/login'>login</a></p><br>")
+        self.write("<p><a href='/'>home</a></p>")
         self.write("</body></html>")
 
 class HowToPageHandler(tornado.web.RequestHandler):
@@ -362,8 +396,9 @@ class HowToPageHandler(tornado.web.RequestHandler):
         self.write("<p><a href='http://www.opencv.org'><b>OpenCV</b>: a shortcut to learn computer vision</a></p>")
         self.write("<p><a href='http://docs.opencv.org/modules/contrib/doc/facerec/facerec_tutorial.html'><b>Face Recognition</b>: a begining of bio-identification</a></p>")
         self.write("<p><a href='http://cs.berry.edu/~nhamid/p2p/framework-python.html'><b>peer-to-peer networking</b>: share training datasets and data models </a></p>")
-        self.write("<p><a href='https://github.com/bitcoin/bitcoin'><b>incentive system</b>: integrating with cryptocurrency (TODO)</a></p>")
-        self.write("<p><a href='https://github.com/jackylee0424/dfr'>download source code</a></p>")
+        self.write("<p><a href='https://github.com/bitcoin/bitcoin'><b>incentive system</b>: integrating with cryptocurrency (TODO)</a></p><br>")
+        self.write("<p><a href='https://github.com/jackylee0424/dfr'><b>[download source code]</b></a></p><br>")
+        self.write("<p><i>known issues</i>:<br>socket bug cause dropping p2p connection<br>false acceptance rate is high when training set is small</p><br><br>")
         self.write("<p><a href='/'>home</a></p>")
         self.write("</body></html>")
 
@@ -376,9 +411,9 @@ class NewLabelPageHandler(tornado.web.RequestHandler):
             <link rel="stylesheet" href="static/css/jsfeat.css">
             <script type="text/javascript" src="static/js/jquery-1.8.2.min.js"></script>
             </head><body>''')
-        self.write("<h3>your name?</h3>")
+        self.write("<br><h3>your name?</h3>")
         self.write("<input type='text' id='label_name' />")
-        self.write("<p><a id='next_stop'>next</a></p>")
+        self.write("<p><a id='next_stop'>next</a></p><br><br>")
         self.write("<p><a href='/'>home</a></p>")
         self.write('''<script type="text/javascript">$("a#next_stop").on('click',function()
             {
@@ -405,6 +440,8 @@ def main():
         (r"/new", NewLabelPageHandler),
         (r"/cap", CapturePageHandler),
         (r"/how", HowToPageHandler),
+        (r"/done",DonePageHandler),
+        (r"/logged", DoneLoginPageHandler),
         (r"/ws",WSocketHandler),
 
     ],**settings)

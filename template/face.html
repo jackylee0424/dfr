@@ -28,19 +28,7 @@
 
         $(window).load(function() {
             "use strict";
-                       
-           var ws = new WebSocket("ws://{{myIP}}:8080/ws");
-
-           ws.onopen = function()
-           {
            
-           };
-                       
-           ws.onmessage = function (evt)
-           {
-                var r_data = JSON.parse(evt.data);
-                $("#output_label").text(unescape(r_data["computed"]));
-           };
 
             // lets do some fun
             var video = document.getElementById('webcam');
@@ -79,21 +67,41 @@
 
             var max_work_size = 160;
             var counter = 0;
+            var images_sent = 0;
                        
             var dfrmode = {{mode}}; //-1: training, 1: detecting
                        
            if (dfrmode<0){
-                $("#button").text("Training Mode");
+                $("#button").text("New User");
                 $("#label_name").show();
                 $("#output_label").hide();
            }else{
-                $("#button").text("Detection Mode");
+                $("#button").text("Login");
                 $("#label_name").hide();
                 $("#output_label").show();
            }
            
             var present_label = "{{label}}";
             $("#label_name").val("{{label}}");
+                       
+
+           var ws = new WebSocket("ws://{{myIP}}:8080/ws");
+           
+           ws.onopen = function()
+           {
+           
+           };
+           
+           ws.onmessage = function (evt)
+           {
+                var r_data = JSON.parse(evt.data);
+                var login_conf = Math.floor(images_sent/5.*100.0);
+                if (login_conf>100)login_conf=100;
+                $("#output_label").text(unescape(r_data["computed"])+" "+String(login_conf)+"%");
+                if (images_sent>5){
+                       window.location = "/logged?label="+unescape(r_data["computed"]);
+                }
+           };
 
             var demo_opt = function(){
                 this.min_scale = 2;
@@ -129,18 +137,20 @@
                 
                 
                 options = new demo_opt();
+                
+                /*
                 gui = new dat.GUI();
-
                 gui.add(options, 'min_scale', 1, 4).step(0.1);
                 gui.add(options, 'scale_factor', 1.1, 2).step(0.025);
                 gui.add(options, 'equalize_histogram');
                 gui.add(options, 'use_canny');
                 gui.add(options, 'edges_density', 0.01, 1.).step(0.005);
-                
+                */
                        
                 stat.add("haar detector");
             }
-                       
+           
+           /*
            $("#button").click( function()
             {
                 dfrmode = -1 * dfrmode;
@@ -154,7 +164,8 @@
                     $("#output_label").show();
                 }
             });
-
+            */
+                       
             function tick() {
                 compatibility.requestAnimationFrame(tick);
                 stat.new_frame();
@@ -220,6 +231,10 @@
                        //send data to server
                        present_label = $("#label_name").val();
                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
+                       if ((images_sent>6)&&(dfrmode<0)){
+                            window.location="/done";
+                       }
+                       images_sent++;
                     }
                     counter++;
                     document.body.removeChild(faceROI)
