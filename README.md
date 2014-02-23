@@ -1,10 +1,10 @@
 p2pID
 ===
 [p2pID](http://p2pid.co) at Launch Hackathon 2014
-      1. click new user
-      2. type in your name
-      3. enable camera for like 10 seconds
-      4. go back home and login -> it should detect your ID
+1. click new user
+2. type in your name
+3. enable camera for like 10 seconds
+4. go back home and login -> it should detect your ID
 
 
 Build your own node
