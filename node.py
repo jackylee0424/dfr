@@ -193,14 +193,15 @@ def train():
     X,y = read_data("data/raw/")
     
     ## save to matrix data
-    filename_temp = os.urandom(8).encode('hex')
+    #filename_temp = os.urandom(8).encode('hex')
+    filename_temp = "raw"
     if not os.path.exists("data//processed"):
         os.makedirs("data//processed")
     with open('data//processed//%s.data'%filename_temp, 'wb') as output:
         pickle.dump({'X': X, 'y':y}, output, pickle.HIGHEST_PROTOCOL) ## X: image, y: label(integer)
 
     total_images = len(X)
-    print "total images: %d"%total_images
+    #print "total images: %d"%total_images
     if len(X)<10:
         print "too few images stored. train more!"
         return
@@ -226,8 +227,8 @@ def train():
     print "model computed and saved. took %.3f ms"%((time.time()-t)*1000.)
     
     # hashing model as a signature to get the latest model up-to-date
-    t = time.time()
-    print "model hashing: %s took %.3f ms"%(sha256_for_file('data//model//model.bin',hr=True),(time.time()-t)*1000.)
+    #t = time.time()
+    #print "model hashing: %s took %.3f ms"%(sha256_for_file('data//model//model.bin',hr=True),(time.time()-t)*1000.)
 
 class WSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
