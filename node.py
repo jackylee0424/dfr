@@ -343,6 +343,8 @@ class DoneLoginPageHandler(tornado.web.RequestHandler):
             <link rel="stylesheet" href="static/css/jsfeat.css">
             </head><body>''')
         self.write("<h2>Login Successfully, %s</h2>"%label)
+        if label=="Jackie":
+            self.write("<img src='static/img/leebitcoin.png'/> Donate Bitcoin")
         self.write("<p>move on to integrate p2pID to your system</p>")
         self.write("<p><a href='/how'>how to</a></p><br><br>")
         self.write("<p><a href='/'>home</a></p>")
