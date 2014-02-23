@@ -294,7 +294,6 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
         if (self.mode>0) and (self.data_loaded):
             print "Detect mode"
             self.detect_face(imgpreprocess(fullpath))
-        
         else:
             print "Training mode"
             self.labeldict[self.dir_name]=parsed["label"]
@@ -312,7 +311,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
         # check if re-train is needed
         X,y = read_data("data/raw/")
-        if (len(X)-total_images)>20:
+        if (len(X)-total_images)>5:
             train()
         print "ws closed"
 
