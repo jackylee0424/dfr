@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-            <title>DFR: Distributed Face Recognition</title>
+            <title>{{title}}</title>
         <link rel="stylesheet" href="static/css/bootstrap.css">
         <link rel="stylesheet" href="static/css/jsfeat.css">
     </head>
@@ -82,7 +82,7 @@
             var max_work_size = 160;
             var counter = 0;
                        
-            var dfrmode = -1; //-1: training, 1: detecting
+            var dfrmode = {{mode}}; //-1: training, 1: detecting
                        
            if (dfrmode<0){
                 $("#button").text("Training Mode");

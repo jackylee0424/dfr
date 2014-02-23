@@ -312,8 +312,25 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        #p2p.send_file.send()
-        self.render("face.html")
+        self.render("face.html",mode=-1, title="New User")
+
+class LoginPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("face.html",mode=1, title="Login")
+
+class IndexPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('''<html><head>
+                   <meta charset="utf-8">
+                   <title>p2pID</title>
+                   <link rel="stylesheet" href="static/css/bootstrap.css">
+                   <link rel="stylesheet" href="static/css/jsfeat.css">
+                   </head><body>''')
+        self.write("<h2>p2pID</h2>")
+        self.write("<p>A peer-to-peer bio-identification service for verifying a user's presence</p><br><br>")
+        self.write("<p><a href='/login'>login</a></p>")
+        self.write("<p><a href='/new'>new user</a></p>")
+        self.write("</body></html>")
 
 def main():
     #run_p2p()
@@ -321,11 +338,13 @@ def main():
     settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "template"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            debug=False)
+            debug=True)
     
     tornado.options.parse_command_line()
     application = tornado.web.Application([
-        (r"/", CapturePageHandler),
+        (r"/", IndexPageHandler),
+        (r"/login", LoginPageHandler),
+        (r"/new", CapturePageHandler),
         (r"/ws",WSocketHandler),
 
     ],**settings)
