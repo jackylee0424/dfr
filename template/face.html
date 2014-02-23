@@ -209,7 +209,10 @@
                     //$('#log').html(stat.log());
                 }
             }
-
+           var rlx = 0;
+           var rly = 0;
+           var rlw = 0;
+           var rlh = 0;
             function draw_faces(ctx, rects, sc, max) {
                 var on = rects.length;
                 if(on && max) {
@@ -220,7 +223,13 @@
                 var r;
                 for(var i = 0; i < n; ++i) {
                     r = rects[i];
-                    ctx.strokeRect((r.x*sc)|0,(r.y*sc)|0,(r.width*sc)|0,(r.height*sc)|0);
+                    
+                       rlx = rlx*.9+r.x*sc*.1;
+                       rly = rly*.9+r.y*sc*.1;
+                       rlw = rlw*.9+r.width*sc*.1;
+                       rlh = rlh*.9+r.height*sc*.1;
+                       ctx.strokeRect((rlx)|0,(rly)|0,(rlw)|0,(rlh)|0);
+                    //ctx.strokeRect((r.x*sc)|0,(r.y*sc)|0,(r.width*sc)|0,(r.height*sc)|0);
                        
                     // send face ROI data to ws server
                     var faceROI = document.createElement('canvas');
