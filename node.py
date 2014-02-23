@@ -42,7 +42,7 @@ if (len(sys.argv)!=2):
     sys.exit(0)
 myIP = sys.argv[1]
 
-class p2pNode:
+class p2pNode: ## currently disabled (feb.22- lee)
     def __init__(self):
         self.cmds = {
             "get_db":p2p.get_db.get_db,
@@ -353,15 +353,16 @@ class HowToPageHandler(tornado.web.RequestHandler):
     def get(self):
         self.write('''<html><head>
             <meta charset="utf-8">
-            <title>How to build my own p2pID</title>
+            <title>p2pID</title>
             <link rel="stylesheet" href="static/css/bootstrap.css">
             <link rel="stylesheet" href="static/css/jsfeat.css">
             </head><body>''')
-        self.write("<h2>How to build my own p2pID service</h2>")
-        self.write("<p><a href='http://www.python.org'>Python</a></p>")
-        self.write("<p><a href='http://www.opencv.org'>Python + OpenCV</a></p>")
-        self.write("<p><a href='http://docs.opencv.org/modules/contrib/doc/facerec/facerec_tutorial.html'>Face Recognition</a></p>")
-        self.write("<p><a href='http://cs.berry.edu/~nhamid/p2p/framework-python.html'>peer-to-peer network in Python</a></p>")
+        self.write("<h3>build my own p2pID service</h3>")
+        self.write("<p><a href='http://www.python.org'><b>Python</b>: a tool that connects you to lots scientific tools</a></p>")
+        self.write("<p><a href='http://www.opencv.org'><b>OpenCV</b>: a shortcut to learn computer vision</a></p>")
+        self.write("<p><a href='http://docs.opencv.org/modules/contrib/doc/facerec/facerec_tutorial.html'><b>Face Recognition</b>: a begining of bio-identification</a></p>")
+        self.write("<p><a href='http://cs.berry.edu/~nhamid/p2p/framework-python.html'><b>peer-to-peer networking</b>: share training datasets and data models </a></p>")
+        self.write("<p><a href='https://github.com/bitcoin/bitcoin'><b>incentive system</b>: integrating with cryptocurrency (TODO)</a></p>")
         self.write("<p><a href='https://github.com/jackylee0424/dfr'>download source code</a></p>")
         self.write("<p><a href='/'>home</a></p>")
         self.write("</body></html>")
@@ -390,7 +391,7 @@ class NewLabelPageHandler(tornado.web.RequestHandler):
         self.write("</body></html>")
 
 def main():
-    #run_p2p()
+    #run_p2p() ## disable p2p data sync due to a socket bug
     train()
     settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "template"),
