@@ -9,15 +9,14 @@
     </head>
     <body>
             <video id="webcam" width="640" height="480" style="display:none;"></video>
-            <div style=" width:640px;height:480px;margin: 10px auto;">
+            <div style=" width:640px;height:480px;">
                 <canvas id="canvas" width="640" height="480"></canvas>
                 <div id="no_rtc" class="alert alert-error" style="display:none;"></div>
-                <!--<div id="log" class="alert alert-info"></div>-->
                 <div id="button" data-role="button"></div>
-                <input type="text" id="label_name" />
+                <input type="text" id="label_name"></input>
                 <h3 id="output_label">-</h3>
+                <br><a href="/">home</a>
             </div>
-            
             
         <script type="text/javascript" src="static/js/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="static/js/jsfeat-min.js"></script>
@@ -30,7 +29,7 @@
         $(window).load(function() {
             "use strict";
                        
-           var ws = new WebSocket("ws://127.0.0.1:8080/ws");
+           var ws = new WebSocket("ws://{{myIP}}:8080/ws");
 
            ws.onopen = function()
            {
@@ -40,7 +39,6 @@
            ws.onmessage = function (evt)
            {
                 var r_data = JSON.parse(evt.data);
-                       
                 $("#output_label").text(unescape(r_data["computed"]));
            };
 
@@ -94,7 +92,8 @@
                 $("#output_label").show();
            }
            
-            var present_label = "";
+            var present_label = "{{label}}";
+            $("#label_name").val("{{label}}");
 
             var demo_opt = function(){
                 this.min_scale = 2;
@@ -127,7 +126,8 @@
                 ii_sqsum = new Int32Array((w+1)*(h+1));
                 ii_tilted = new Int32Array((w+1)*(h+1));
                 ii_canny = new Int32Array((w+1)*(h+1));
-
+                
+                
                 options = new demo_opt();
                 gui = new dat.GUI();
 
@@ -136,7 +136,8 @@
                 gui.add(options, 'equalize_histogram');
                 gui.add(options, 'use_canny');
                 gui.add(options, 'edges_density', 0.01, 1.).step(0.005);
-
+                
+                       
                 stat.add("haar detector");
             }
                        

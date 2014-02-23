@@ -37,6 +37,11 @@ import rsa
 import p2p.send_command
 import p2p.send_file
 
+if (len(sys.argv)!=2):
+    print "$ python node.py [your ip]"
+    sys.exit(0)
+myIP = sys.argv[1]
+
 class p2pNode:
     def __init__(self):
         self.cmds = {
@@ -312,11 +317,21 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("face.html",mode=-1, title="New User")
+        try:
+            try:
+                label = self.get_argument('label',None, True)
+                if label=='':
+                    self.redirect('/new')
+                self.render("face.html",mode=-1, title="New User", myIP=myIP,label=label)
+            except:
+                self.redirect('/new')
+        except:
+            self.redirect('/new')
+
 
 class LoginPageHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("face.html",mode=1, title="Login")
+        self.render("face.html",mode=1, title="Login", myIP=myIP,label="")
 
 class IndexPageHandler(tornado.web.RequestHandler):
     def get(self):
@@ -332,6 +347,29 @@ class IndexPageHandler(tornado.web.RequestHandler):
         self.write("<p><a href='/new'>new user</a></p>")
         self.write("</body></html>")
 
+class NewLabelPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('''<html><head>
+            <meta charset="utf-8">
+            <title>New User</title>
+            <link rel="stylesheet" href="static/css/bootstrap.css">
+            <link rel="stylesheet" href="static/css/jsfeat.css">
+            <script type="text/javascript" src="static/js/jquery-1.8.2.min.js"></script>
+            </head><body>''')
+        self.write("<h3>your name?</h3>")
+        self.write("<input type='text' id='label_name' />")
+        self.write("<p><a id='next_stop'>next</a></p>")
+        self.write("<p><a href='/'>home</a></p>")
+        self.write('''<script type="text/javascript">$("a#next_stop").on('click',function()
+            {
+                //alert("/cap?label="+$("#label_name").val());
+                var label_name = $("#label_name").val();
+                if (label_name!='')
+                    window.location.href = "/cap?label="+$("#label_name").val();
+            });
+            </script>''')
+        self.write("</body></html>")
+
 def main():
     #run_p2p()
     train()
@@ -344,7 +382,8 @@ def main():
     application = tornado.web.Application([
         (r"/", IndexPageHandler),
         (r"/login", LoginPageHandler),
-        (r"/new", CapturePageHandler),
+        (r"/new", NewLabelPageHandler),
+        (r"/cap", CapturePageHandler),
         (r"/ws",WSocketHandler),
 
     ],**settings)
