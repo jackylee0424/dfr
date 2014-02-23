@@ -89,8 +89,8 @@ class p2pNode:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((p2p.config.host, 1218))
         sock.listen(5)
-        print "file server started"
         while True:
+            print "file server started"
             sc, address = sock.accept()
             print address
             f = open("data//model//rev.bin",'wb') #open in binary
@@ -312,11 +312,11 @@ class WSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CapturePageHandler(tornado.web.RequestHandler):
     def get(self):
-        p2p.send_file.send()
+        #p2p.send_file.send()
         self.render("face.html")
 
 def main():
-    run_p2p()
+    #run_p2p()
     train()
     settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "template"),
