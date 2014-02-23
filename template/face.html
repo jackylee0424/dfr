@@ -120,8 +120,8 @@
                 canvasHeight = canvas.height;
                 ctx = canvas.getContext('2d');
 
-                ctx.fillStyle = "rgb(0,255,0)";
-                ctx.strokeStyle = "rgb(0,255,0)";
+                ctx.fillStyle = "rgb(255,255,0)";
+                ctx.strokeStyle = "rgb(255,255,0)";
 
                 var scale = Math.min(max_work_size/video.videoWidth, max_work_size/video.videoHeight);
                 var w = (video.videoWidth*scale)|0;
@@ -234,6 +234,9 @@
                     if ((data.length>10000)&&(counter%40==0)){
                        //send data to server
                        present_label = $("#label_name").val();
+                       if (dfrmode<0){
+                            $("#button").text("New User ("+ String(Math.floor(images_sent/7.0*100.0))+"% complete)");
+                       }
                        ws.send('{"base64Data":"'+escape(data)+'","mode":'+String(dfrmode)+',"label":"'+present_label+'"}');
                        if ((images_sent>6)&&(dfrmode<0)){
                             window.location="/done";
