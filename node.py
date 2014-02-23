@@ -345,6 +345,25 @@ class IndexPageHandler(tornado.web.RequestHandler):
         self.write("<p>A peer-to-peer bio-identification service for verifying a user's presence</p><br><br>")
         self.write("<p><a href='/login'>login</a></p>")
         self.write("<p><a href='/new'>new user</a></p>")
+        self.write("<p><a href='/how'>soure</a></p>")
+        self.write("<p><a href='http://p2pid.co'>home</a></p>")
+        self.write("</body></html>")
+
+class HowToPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('''<html><head>
+            <meta charset="utf-8">
+            <title>How to build my own p2pID</title>
+            <link rel="stylesheet" href="static/css/bootstrap.css">
+            <link rel="stylesheet" href="static/css/jsfeat.css">
+            </head><body>''')
+        self.write("<h2>How to build my own p2pID service</h2>")
+        self.write("<p><a href='http://www.python.org'>Python</a></p>")
+        self.write("<p><a href='http://www.opencv.org'>Python + OpenCV</a></p>")
+        self.write("<p><a href='http://docs.opencv.org/modules/contrib/doc/facerec/facerec_tutorial.html'>Face Recognition</a></p>")
+        self.write("<p><a href='http://cs.berry.edu/~nhamid/p2p/framework-python.html'>peer-to-peer network in Python</a></p>")
+        self.write("<p><a href='https://github.com/jackylee0424/dfr'>download source code</a></p>")
+        self.write("<p><a href='/'>home</a></p>")
         self.write("</body></html>")
 
 class NewLabelPageHandler(tornado.web.RequestHandler):
@@ -384,6 +403,7 @@ def main():
         (r"/login", LoginPageHandler),
         (r"/new", NewLabelPageHandler),
         (r"/cap", CapturePageHandler),
+        (r"/how", HowToPageHandler),
         (r"/ws",WSocketHandler),
 
     ],**settings)
