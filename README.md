@@ -1,12 +1,20 @@
-dfr
+p2pID
 ===
+[p2pID](http://p2pid.co)
+Launch Hackathon 2014
+1. click new user
+2. type in your name
+3. enable camera for like 10 seconds
+4. go back home and login -> it should detect your ID
 
-launchhack 2014
 
+Build your own node
+===
 1. Launch face recog node
-
+      Mac 10.9
+      
       $ sudo port install opencv +python27
-
+      
       $ python node.py
 
 2. Launch chrome browser and go to http://localhost:8080
