@@ -344,7 +344,70 @@ class DoneLoginPageHandler(tornado.web.RequestHandler):
             </head><body>''')
         self.write("<h2>Login Successfully, %s</h2>"%label)
         if label=="Jackie":
-            self.write("<img src='static/img/leebitcoin.png'/> Donate Bitcoin")
+            #self.write("<img src='static/img/leebitcoin.png'/> Donate Bitcoin")
+            self.write('''
+                <form id="makeDonation" action="https://bitpay.com/checkout" method="post" onsubmit="return bp.validateMobileCheckoutForm($('#makeDonation'));">
+                <input name="action" type="hidden" value="checkout">
+                <fieldset class="phone-form well form-horizontal" style="margin-top: 5px;">
+                <ul>
+                <li id="orderID" class="control-group">
+                <label class="control-label" style="width: 40px">Email:</label>
+                <div class="controls" style="margin-left: 60px">
+                <input name="orderID" type="email" class="input input-xlarge" placeholder="Email address (optional)" maxlength=50 autocapitalize=off autocorrect=off><br>
+                </div>
+                </li>
+                <li id="price" class="control-group">
+                <label class="control-label" style="width: 40px">Amount:</label>
+                <div class="controls" style="margin-left: 60px">
+                <input name="price" type="number" class="noscroll" value="10.00" placeholder="Amount" maxlength="10" min="0.01" step="0.01" style="width: 39%"  />
+                <select name="currency" value="" style="width: 49%" >
+                <option value="USD" selected="selected">USD</option>
+                <option value="BTC">BTC</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="AUD">AUD</option>
+                <option value="BGN">BGN</option>
+                <option value="BRL">BRL</option>
+                <option value="CAD">CAD</option>
+                <option value="CHF">CHF</option>
+                <option value="CNY">CNY</option>
+                <option value="CZK">CZK</option>
+                <option value="DKK">DKK</option>
+                <option value="HKD">HKD</option>
+                <option value="HRK">HRK</option>
+                <option value="HUF">HUF</option>
+                <option value="IDR">IDR</option>
+                <option value="ILS">ILS</option>
+                <option value="INR">INR</option>
+                <option value="JPY">JPY</option>
+                <option value="KRW">KRW</option>
+                <option value="LTL">LTL</option>
+                <option value="LVL">LVL</option>
+                <option value="MXN">MXN</option>
+                <option value="MYR">MYR</option>
+                <option value="NOK">NOK</option>
+                <option value="NZD">NZD</option>
+                <option value="PHP">PHP</option>
+                <option value="PLN">PLN</option>
+                <option value="RON">RON</option>
+                <option value="RUB">RUB</option>
+                <option value="SEK">SEK</option>
+                <option value="SGD">SGD</option>
+                <option value="THB">THB</option>
+                <option value="TRY">TRY</option>
+                <option value="ZAR">ZAR</option>
+                </select/>
+                </div>
+                </li>
+                </ul>
+                <br>
+                <input type="hidden" name="data" value="BCBS6+mbbrHQu9eGxdP6ix/urTyyOZxUFwt/94b8eqin60/8fvxSVUcAYdVhjKxyic9ZCyMgzK32IYGSDJ7++PSWg7kqLYmKvrKE0q+cfLXDU7WyjgfoNeVSWSDlB2iWNhw7s+hD99gD9a9F+hDlXRCZBg84eoI3mHXej2Cnxq4yJm+BDRimYWB7J7CH0zxXDYzrzf6zyVle9KwGNc+CGQVfzwMfDiaKBb7BtOc4xtwCO8q4ITnRfKhpROln8htv">
+                <div style="margin: auto; width: 100%; text-align: center">
+                <input name="submit" src="static/img/donate-md.png" type="image" style="width: auto" alt="BitPay, the easy way to pay with bitcoins." border="0">
+                </div>
+                </fieldset>
+                </form>
+                ''')
         self.write("<p>move on to integrate p2pID to your system</p>")
         self.write("<p><a href='/how'>how to</a></p><br><br>")
         self.write("<p><a href='/'>home</a></p>")
