@@ -110,10 +110,10 @@ def train():
     #t = time.time()
     #print "model hashing: %s took %.3f ms"%(sha256_for_file('data//model//model.bin',hr=True),(time.time()-t)*1000.)
 
-## for file download
-class FileDownloadSocket(tornado.websocket.WebSocketHandler):
+## for model file download
+class ModelDownloadSocket(tornado.websocket.WebSocketHandler):
     def open(self):
-        print "FileDownloadSocket opened"
+        print "ModelDownloadSocket opened"
         filetx = join("data","model","model.bin")
         self.filehash = sha256_for_file(filetx)
         print "file hash", self.filehash
@@ -124,12 +124,33 @@ class FileDownloadSocket(tornado.websocket.WebSocketHandler):
         print "client response: %s"%m
         jm = json.loads(str(m))
         if jm["confirm_hash"] == self.filehash:
-            print "file sent successfully"
+            print "model sent successfully"
         print "closing FileDownloadSocket connection"
         self.close()
     
     def on_close(self):
-        print "FileDownloadSocket closed"
+        print "ModelDownloadSocket closed"
+
+## for label file download
+class LabelDownloadSocket(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print "LabelDownloadSocket opened"
+        filetx = join("data","labels.bin")
+        self.filehash = sha256_for_file(filetx)
+        print "file hash", self.filehash
+        indata = open(filetx, "rb").read()
+        self.write_message(indata, binary=True)
+    
+    def on_message(self, m):
+        print "client response: %s"%m
+        jm = json.loads(str(m))
+        if jm["confirm_hash"] == self.filehash:
+            print "label sent successfully"
+        print "closing LabelDownloadSocket connection"
+        self.close()
+    
+    def on_close(self):
+        print "LabelDownloadSocket closed"
 
 class WSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -343,7 +364,8 @@ def main():
         (r"/done",DonePageHandler),
         (r"/logged", DoneLoginPageHandler),
         (r"/ws",WSocketHandler),
-        (r"/filedownload", FileDownloadSocket),
+        (r"/modeldownload", ModelDownloadSocket),
+        (r"/labeldownload", LabelDownloadSocket),
 
     ],**settings)
     http_server = tornado.httpserver.HTTPServer(application)
