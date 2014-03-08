@@ -6,6 +6,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import os
+from os.path import exists, join
 import tornado.websocket
 import base64
 import urllib2
@@ -23,135 +24,14 @@ import shutil
 genesis_ts = 1392697800000
 total_images=0
 
-## p2p node
-import string
-import random
-import thread
-import socket
-import p2p.config
-import p2p.get_db
-import p2p.get_version
-import p2p.get_nodes
-import p2p.register
-import rsa
-import p2p.send_command
-import p2p.send_file
-
 if (len(sys.argv)!=2):
-    print "$ python node.py [your ip]"
+    print "$ python node_server.py [your ip]"
     sys.exit(0)
 myIP = sys.argv[1]
 
-class p2pNode: ## currently disabled (feb.22- lee)
-    def __init__(self):
-        self.cmds = {
-            "get_db":p2p.get_db.get_db,
-            "get_nodes":p2p.get_nodes.get_nodes,
-            "get_version":p2p.get_version.get_version,
-            "register":p2p.register.register,
-            "get_nodes_count":p2p.get_nodes.count,
-            "p2p":self.runp2p
-    }
-    def runp2p(self,obj,data):
-        obj.send(json.dumps({"p2p":"hello world!"}))
-    
-    def firstrun(self):
-        print "Generating address and public/private keys"
-        pub, priv = rsa.newkeys(1024)
-        address = "D"+''.join([random.choice(string.uppercase+string.lowercase+string.digits) for x in range(50)])
-        print "My DFR wallet address: "+address
-        print "Getting nodes from network"
-        p2p.get_nodes.send(True)
-        check = p2p.config.nodes.find("nodes", "all")
-        if not check:
-            print "Seed node (aka no other nodes online)"
-            p2p.config.nodes.insert("nodes", {"public":str(pub), "address":address, "ip":p2p.config.host, "relay":p2p.config.relay, "port":p2p.config.port})
-            p2p.config.nodes.save()
-            p2p.config.db.save()
-        p2p.config.wallet.insert("data", {"public":str(pub), "address":address, "private":str(priv)})
-        p2p.config.wallet.save()
-        print "Registering..."
-        p2p.register.send()
-        print "Getting db..."
-        p2p.get_db.send()
-        print "Done!"
-    
-    def relay(self):
-        # relay mode
-        p2p.get_nodes.send()
-        p2p.register.send()
-        p2p.get_db.send()
-        sock = socket.socket()
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((p2p.config.host, p2p.config.port))
-        sock.listen(5)
-        while True:
-            obj, conn = sock.accept()
-            thread.start_new_thread(self.handle, (obj, conn[0]))
-
-    def fileserver(self):
-        sock = socket.socket()
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((p2p.config.host, 1218))
-        sock.listen(5)
-        while True:
-            print "file server started"
-            sc, address = sock.accept()
-            print address
-            f = open("data//model//rev.bin",'wb') #open in binary
-            while (True):
-                l = sc.recv(1024)
-                while (l):
-                    f.write(l)
-                    l = sc.recv(1024)
-            f.close()
-            sc.close()
-            print "file received"
-        sock.close()
-
-    def handle(self, obj, ip):
-        data = obj.recv(10240)
-        if data:
-            try:
-                data = json.loads(data)
-            except:
-                obj.close()
-                return
-            else:
-                if "cmd" in data:
-                    if data['cmd'] in self.cmds:
-                        data['ip'] = ip
-                        #print data
-                        self.cmds[data['cmd']](obj, data)
-                        obj.close()
-    
-    def normal(self):
-        # normal mode
-        if not p2p.config.relay:
-            p2p.get_db.send()
-            p2p.register.send()
-        while True:
-            #coin_count.send()
-            p2p.get_nodes.count_send()
-            time.sleep(60)
-
-def run_p2p():
-    pn = p2pNode()
-    check = p2p.config.nodes.find("nodes", "all")
-    if not check:
-        pn.firstrun()
-    if p2p.config.relay:
-        thread.start_new_thread(pn.normal, ())
-        thread.start_new_thread(pn.relay, ())
-        thread.start_new_thread(pn.fileserver, ())
-        print "DFR started as a relay node."
-    else:
-        thread.start_new_thread(pn.normal, ())
-        print "DFR started as a normal node."
-
 tornado.options.define("port", default=8080, help="run on the given port", type=int)
 
-def sha256_for_file(path, block_size=256*128, hr=False):
+def sha256_for_file(path, block_size=256*128, hr=True):
     sha256 = hashlib.sha256()
     with open(path,'rb') as f:
         for chunk in iter(lambda: f.read(block_size), b''):
@@ -229,6 +109,27 @@ def train():
     # hashing model as a signature to get the latest model up-to-date
     #t = time.time()
     #print "model hashing: %s took %.3f ms"%(sha256_for_file('data//model//model.bin',hr=True),(time.time()-t)*1000.)
+
+## for file download
+class FileDownloadSocket(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print "FileDownloadSocket opened"
+        filetx = join("data","model","model.bin")
+        self.filehash = sha256_for_file(filetx)
+        print "file hash", self.filehash
+        indata = open(filetx, "rb").read()
+        self.write_message(indata, binary=True)
+    
+    def on_message(self, m):
+        print "client response: %s"%m
+        jm = json.loads(str(m))
+        if jm["confirm_hash"] == self.filehash:
+            print "file sent successfully"
+        print "closing FileDownloadSocket connection"
+        self.close()
+    
+    def on_close(self):
+        print "FileDownloadSocket closed"
 
 class WSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -343,71 +244,6 @@ class DoneLoginPageHandler(tornado.web.RequestHandler):
             <link rel="stylesheet" href="static/css/jsfeat.css">
             </head><body>''')
         self.write("<h2>Login Successfully, %s</h2>"%label)
-        if label=="Jackie":
-            #self.write("<img src='static/img/leebitcoin.png'/> Donate Bitcoin")
-            self.write('''
-                <form id="makeDonation" action="https://bitpay.com/checkout" method="post" onsubmit="return bp.validateMobileCheckoutForm($('#makeDonation'));">
-                <input name="action" type="hidden" value="checkout">
-                <fieldset class="phone-form well form-horizontal" style="margin-top: 5px;">
-                <ul>
-                <li id="orderID" class="control-group">
-                <label class="control-label" style="width: 40px">Email:</label>
-                <div class="controls" style="margin-left: 60px">
-                <input name="orderID" type="email" class="input input-xlarge" placeholder="Email address (optional)" maxlength=50 autocapitalize=off autocorrect=off><br>
-                </div>
-                </li>
-                <li id="price" class="control-group">
-                <label class="control-label" style="width: 40px">Amount:</label>
-                <div class="controls" style="margin-left: 60px">
-                <input name="price" type="number" class="noscroll" value="10.00" placeholder="Amount" maxlength="10" min="0.01" step="0.01" style="width: 39%"  />
-                <select name="currency" value="" style="width: 49%" >
-                <option value="USD" selected="selected">USD</option>
-                <option value="BTC">BTC</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="AUD">AUD</option>
-                <option value="BGN">BGN</option>
-                <option value="BRL">BRL</option>
-                <option value="CAD">CAD</option>
-                <option value="CHF">CHF</option>
-                <option value="CNY">CNY</option>
-                <option value="CZK">CZK</option>
-                <option value="DKK">DKK</option>
-                <option value="HKD">HKD</option>
-                <option value="HRK">HRK</option>
-                <option value="HUF">HUF</option>
-                <option value="IDR">IDR</option>
-                <option value="ILS">ILS</option>
-                <option value="INR">INR</option>
-                <option value="JPY">JPY</option>
-                <option value="KRW">KRW</option>
-                <option value="LTL">LTL</option>
-                <option value="LVL">LVL</option>
-                <option value="MXN">MXN</option>
-                <option value="MYR">MYR</option>
-                <option value="NOK">NOK</option>
-                <option value="NZD">NZD</option>
-                <option value="PHP">PHP</option>
-                <option value="PLN">PLN</option>
-                <option value="RON">RON</option>
-                <option value="RUB">RUB</option>
-                <option value="SEK">SEK</option>
-                <option value="SGD">SGD</option>
-                <option value="THB">THB</option>
-                <option value="TRY">TRY</option>
-                <option value="ZAR">ZAR</option>
-                </select/>
-                </div>
-                </li>
-                </ul>
-                <br>
-                <input type="hidden" name="data" value="BCBS6+mbbrHQu9eGxdP6ix/urTyyOZxUFwt/94b8eqin60/8fvxSVUcAYdVhjKxyic9ZCyMgzK32IYGSDJ7++PSWg7kqLYmKvrKE0q+cfLXDU7WyjgfoNeVSWSDlB2iWNhw7s+hD99gD9a9F+hDlXRCZBg84eoI3mHXej2Cnxq4yJm+BDRimYWB7J7CH0zxXDYzrzf6zyVle9KwGNc+CGQVfzwMfDiaKBb7BtOc4xtwCO8q4ITnRfKhpROln8htv">
-                <div style="margin: auto; width: 100%; text-align: center">
-                <input name="submit" src="static/img/donate-md.png" type="image" style="width: auto" alt="BitPay, the easy way to pay with bitcoins." border="0">
-                </div>
-                </fieldset>
-                </form>
-                ''')
         self.write("<p>move on to integrate p2pID to your system</p>")
         self.write("<p><a href='/how'>how to</a></p><br><br>")
         self.write("<p><a href='/'>home</a></p>")
@@ -491,7 +327,6 @@ class NewLabelPageHandler(tornado.web.RequestHandler):
         self.write("</body></html>")
 
 def main():
-    #run_p2p() ## disable p2p data sync due to a socket bug
     train()
     settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "template"),
@@ -508,6 +343,7 @@ def main():
         (r"/done",DonePageHandler),
         (r"/logged", DoneLoginPageHandler),
         (r"/ws",WSocketHandler),
+        (r"/filedownload", FileDownloadSocket),
 
     ],**settings)
     http_server = tornado.httpserver.HTTPServer(application)
